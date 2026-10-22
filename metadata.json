@@ -1,0 +1,6 @@
+{
+  "name": "Stillwater",
+  "description": "Deep focus timer, app limiter, short-video blocker, and mindful study companion for students.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+
+    /* Theme colors - Dark by default */
+    --color-bg: #0B0E14;
+    --color-surface: #141925;
+    --color-surface-2: #1C2333;
+    --color-border: #273049;
+    --color-text: #F2F5FA;
+    --color-text-muted: #8B95AD;
+    
+    /* Accents (Aqua default) */
+    --color-primary: #5EEAD4;
+    --color-primary-ink: #04332D;
+    --color-accent: #A78BFA;
+    --color-warn: #FBBF24;
+    --color-danger: #F87171;
+    --color-success: #4ADE80;
+  }
+
+  .theme-light {
+    --color-bg: #F8FAFC;
+    --color-surface: #FFFFFF;
+    --color-surface-2: #F1F5F9;
+    --color-border: #E2E8F0;
+    --color-text: #0F172A;
+    --color-text-muted: #64748B;
+  }
+
+  /* Accent themes */
+  .accent-aqua {
+    --color-primary: #5EEAD4;
+    --color-primary-ink: #04332D;
+  }
+
+  .accent-violet {
+    --color-primary: #A78BFA;
+    --color-primary-ink: #2E1065;
+  }
+
+  .accent-sunset {
+    --color-primary: #FB923C;
+    --color-primary-ink: #431407;
+  }
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom smooth scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 9999px;
+}
+
+/* Ripple animation for the water theme */
+@keyframes water-pulse {
+  0% { transform: scale(0.95); opacity: 0.6; }
+  50% { transform: scale(1.05); opacity: 0.2; }
+  100% { transform: scale(0.95); opacity: 0.6; }
+}
+
+.animate-water-pulse {
+  animation: water-pulse 4s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 16px rgba(94, 234, 212, 0.2)); }
+  50% { transform: scale(1.08); filter: drop-shadow(0 0 32px rgba(94, 234, 212, 0.45)); }
+}
+
+.animate-breathe {
+  animation: breathe 8s ease-in-out infinite;
+}
