@@ -105,7 +105,7 @@ export const CreateScheduleScreen: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0E14] text-[#F2F5FA] p-5 pb-28 max-w-md mx-auto flex flex-col justify-between select-none animate-in fade-in duration-200">
+    <div className="min-h-screen bg-[#0B0E14] text-[#F2F5FA] p-4 sm:p-6 md:p-8 pb-28 w-full max-w-md sm:max-w-xl md:max-w-2xl mx-auto flex flex-col justify-between select-none animate-in fade-in duration-200">
       <div className="space-y-5">
         {/* Header matching screenshot #4: < Name ✏️ */}
         <div className="flex items-center justify-between pt-2">

@@ -50,9 +50,9 @@ export const SuggestedScheduleCarousel: React.FC = () => {
         </span>
       </div>
 
-      {/* Horizontal Carousel */}
+      {/* Horizontal Carousel on mobile, 2-column grid on tablet */}
       <div
-        className="flex gap-3 overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth pb-1"
+        className="flex gap-3 overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth pb-1 md:grid md:grid-cols-2 md:overflow-visible"
         onScroll={(e) => {
           const scrollLeft = e.currentTarget.scrollLeft;
           const width = e.currentTarget.offsetWidth;
@@ -65,7 +65,7 @@ export const SuggestedScheduleCarousel: React.FC = () => {
           return (
             <div
               key={idx}
-              className="snap-center shrink-0 w-[88%] max-w-[340px] bg-[#141925] border border-[#273049] rounded-[24px] p-4 flex items-center justify-between transition-all"
+              className="snap-center shrink-0 w-[88%] max-w-[340px] md:w-full md:max-w-none bg-[#141925] border border-[#273049] rounded-[24px] p-4 flex items-center justify-between transition-all hover:border-[var(--color-primary)]/40 shadow-sm"
             >
               <div className="space-y-1">
                 <h4 className="text-[15px] font-semibold text-[#F2F5FA]">
@@ -92,8 +92,8 @@ export const SuggestedScheduleCarousel: React.FC = () => {
         })}
       </div>
 
-      {/* Pagination dots */}
-      <div className="flex items-center justify-center gap-1.5 pt-0.5">
+      {/* Pagination dots (mobile only) */}
+      <div className="flex md:hidden items-center justify-center gap-1.5 pt-0.5">
         {SUGGESTED_SCHEDULES.map((_, i) => (
           <div
             key={i}

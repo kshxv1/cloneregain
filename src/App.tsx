@@ -37,8 +37,8 @@ const MainLayout: React.FC = () => {
 
   return (
     <div className="relative min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] flex justify-center">
-      {/* Container framing for mobile baseline (360-480px) and tablet centering */}
-      <div className="w-full max-w-[480px] min-h-screen relative flex flex-col shadow-2xl bg-[var(--color-bg)]">
+      {/* Container framing for mobile baseline (360-480px) and tablet/desktop responsiveness */}
+      <div className="w-full max-w-[480px] sm:max-w-xl md:max-w-3xl lg:max-w-4xl min-h-screen relative flex flex-col shadow-2xl bg-[var(--color-bg)] transition-all">
         {/* Active Fullscreen Session takes complete precedence */}
         {activeSession ? (
           <ActiveSessionScreen />
