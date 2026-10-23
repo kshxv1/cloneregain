@@ -31,18 +31,21 @@ jobs:
           echo "=== Java Environment Verification ==="
           echo "JAVA_HOME: $JAVA_HOME"
           java -version
-          JAVA_FULL_VER=$(java -version 2>&1 | head -n 1)
-          echo "Full Java version string: $JAVA_FULL_VER"
-          JAVA_MAJOR=$(java -version 2>&1 | head -n 1 | awk -F '"' '{print $2}' | awk -F '.' '{if ($1 == "1") print $2; else print $1}')
+          JAVA_VERSION_STR=$(java -version 2>&1 | head -n 1)
+          echo "Java version string: $JAVA_VERSION_STR"
+          JAVA_MAJOR=$(echo "$JAVA_VERSION_STR" | sed -E 's/.*"([0-9]+).*/\1/')
           echo "Detected Java major version: $JAVA_MAJOR"
-          if [ -z "$JAVA_MAJOR" ]; then
+
+          if [ -z "$JAVA_MAJOR" ] || ! [[ "$JAVA_MAJOR" =~ ^[0-9]+$ ]]; then
             echo "Error: Could not detect Java major version." >&2
             exit 1
           fi
+
           if [ "$JAVA_MAJOR" -lt 17 ]; then
             echo "Error: Detected Java version $JAVA_MAJOR is lower than required version 17." >&2
             exit 1
           fi
+
           echo "Java environment verified successfully (Java $JAVA_MAJOR >= 17)."
 
       - name: Set up Gradle 9.3.1
@@ -56,7 +59,7 @@ jobs:
             echo "./debug.keystore already exists."
           else
             echo "Generating temporary debug keystore..."
-            keytool -genkeypair -v \
+            "$JAVA_HOME/bin/keytool" -genkeypair -v \
               -keystore ./debug.keystore \
               -alias androiddebugkey \
               -keyalg RSA \
@@ -66,11 +69,15 @@ jobs:
               -keypass android \
               -dname "CN=Android Debug,O=Android,C=US"
           fi
+
           if [ ! -f "./debug.keystore" ]; then
             echo "Error: Failed to create ./debug.keystore" >&2
             exit 1
           fi
-          echo "Temporary debug keystore verified at ./debug.keystore"
+
+          mkdir -p ~/.android
+          cp ./debug.keystore ~/.android/debug.keystore
+          echo "Temporary debug keystore placed at ./debug.keystore and ~/.android/debug.keystore"
 
       - name: Build debug APK
         run: gradle :app:assembleDebug --stacktrace --no-daemon
@@ -86,18 +93,8 @@ jobs:
 
           if [ ! -f "$TARGET_APK" ]; then
             echo "Error: Expected debug APK missing at $TARGET_APK" >&2
-            echo "Searching only inside app/build/outputs/apk and android/app/build/outputs/apk..."
-            if [ -d "app/build/outputs/apk" ]; then
-              find app/build/outputs/apk -maxdepth 3 -name "*.apk"
-            fi
-            if [ -d "android/app/build/outputs/apk" ]; then
-              find android/app/build/outputs/apk -maxdepth 3 -name "*.apk"
-            fi
-            exit 1
-          fi
-
-          if [ ! -f "$TARGET_APK" ]; then
-            echo "Error: $TARGET_APK is not a regular file." >&2
+            echo "Searching for generated APK files..."
+            find . -name "*.apk" || true
             exit 1
           fi
 
@@ -106,17 +103,7 @@ jobs:
             exit 1
           fi
 
-          case "$TARGET_APK" in
-            *.apk) ;;
-            *) echo "Error: $TARGET_APK does not have .apk extension." >&2; exit 1 ;;
-          esac
-
-          if [ "$TARGET_APK" != "app/build/outputs/apk/debug/app-debug.apk" ]; then
-            echo "Error: Selected APK ($TARGET_APK) is not exactly app/build/outputs/apk/debug/app-debug.apk" >&2
-            exit 1
-          fi
-
-          echo "Verified exact APK file: $TARGET_APK"
+          echo "Verified debug APK at $TARGET_APK"
 
       - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
@@ -144,28 +131,23 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG_NAME="debug-apk-build-${{ github.run_number }}-${{ github.run_attempt }}"
+          TAG_NAME="debug-apk-v${{ github.run_number }}"
           RELEASE_TITLE="Debug APK Build #${{ github.run_number }}"
 
           gh release create "$TAG_NAME" "$ASSET_PATH" \
             --title "$RELEASE_TITLE" \
-            --notes "Automated debug APK build #${{ github.run_number }} (attempt ${{ github.run_attempt }})." \
+            --notes "Automated debug APK build #${{ github.run_number }}." \
             --latest
 
-      - name: Report APK download result
+      - name: Report build summary
         if: always()
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
-          TAG_NAME="debug-apk-build-${{ github.run_number }}-${{ github.run_attempt }}"
           echo "## Debug APK Build Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- **Workflow Run**: #${{ github.run_number }} (Attempt ${{ github.run_attempt }})" >> $GITHUB_STEP_SUMMARY
+          echo "- **Workflow Run**: #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **GitHub Actions Artifact**: \`app-debug-apk\` (app/build/outputs/apk/debug/app-debug.apk)" >> $GITHUB_STEP_SUMMARY
-
+          echo "- **Artifact**: \`app-debug-apk\` (app/build/outputs/apk/debug/app-debug.apk)" >> $GITHUB_STEP_SUMMARY
           if [ "${{ steps.publish_release.outcome }}" == "success" ]; then
-            echo "- **GitHub Release**: Successfully created tag \`$TAG_NAME\` with attached asset \`$ASSET_NAME\`" >> $GITHUB_STEP_SUMMARY
-            echo "- **Download URL**: https://github.com/${{ github.repository }}/releases/tag/$TAG_NAME" >> $GITHUB_STEP_SUMMARY
+            echo "- **GitHub Release**: Published tag \`debug-apk-v${{ github.run_number }}\` with asset \`$ASSET_NAME\`" >> $GITHUB_STEP_SUMMARY
           else
-            echo "- **GitHub Release**: Skipped or encountered an issue. The debug APK remains safely stored and downloadable under Actions Artifacts as \`app-debug-apk\`." >> $GITHUB_STEP_SUMMARY
+            echo "- **GitHub Release**: Release step skipped or failed non-fatally; artifact is preserved." >> $GITHUB_STEP_SUMMARY
           fi
